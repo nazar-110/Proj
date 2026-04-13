@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-cpu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+      - name: Configure
+        run: cmake -S . -B build -DENABLE_CUDA=OFF
+      - name: Build
+        run: cmake --build build -j
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Format check
+        run: |
+          clang-format --version
+          git ls-files "*.cpp" "*.h" "*.cu" | xargs clang-format -i
+          git diff --exit-code
